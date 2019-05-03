@@ -1,0 +1,2 @@
+# BinaryToJSONSample
+jackson-databindのObjectMapperにて任意のエンコーディングを指定するサンプルです。
