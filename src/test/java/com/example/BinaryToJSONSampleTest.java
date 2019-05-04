@@ -140,7 +140,6 @@ public class BinaryToJSONSampleTest {
 		// 以下は、byte[]を渡す例です。
 		JsonNode jsonNode = mapper.readTree(json.getBytes("UTF-8"));
 		assertThat(jsonNode.get("message").asText(), equalTo("あいうえお"));
-
 	}
 
 	/*
@@ -294,25 +293,9 @@ public class BinaryToJSONSampleTest {
 	}
 
 	/*
-	 * JsonGeneratorに関する補足 UTF-8以外のエンコーディングを使用し、
-	 * 典型的なJsonGeneratorの使い方でJSONをwriteする例です。
-	 */
-	@Test
-	public void jsonGeneratorShouldWriteJSONIncrementally() throws Exception {
-
-		ByteArrayOutputStream outputBytes = new ByteArrayOutputStream();
-		Writer writer = new OutputStreamWriter(outputBytes, "Shift_JIS");
-		JsonGenerator jsonGenerator = mapper.getFactory().createGenerator(writer);
-		jsonGenerator.writeStartObject();
-		jsonGenerator.writeStringField("message", "あいうえお");
-		jsonGenerator.writeEndObject();
-		jsonGenerator.close();
-
-		assertThat(outputBytes.toByteArray(), equalTo("{\"message\":\"あいうえお\"}".getBytes("Shift_JIS")));
-	}
-
-	/*
-	 * JsonParserに関する補足 UTF-8以外のエンコーディングを使用し、 典型的なJsonParserの使い方でJSONをreadする例です
+	 * JsonParserに関する補足 
+	 * UTF-8以外のエンコーディングを使用し、 
+	 * 典型的なJsonParserの使い方でJSONをreadする例です
 	 */
 	@Test
 	public void jsonParserShouldReadJSONIncrementally() throws Exception {
@@ -336,9 +319,28 @@ public class BinaryToJSONSampleTest {
 	}
 
 	/*
-	 * DataInput / DataOutputの典型的な使用例 ・DataOutput :
-	 * プリミティブ型または文字列を直接バイトデータとして書き出すために使用する ・DataInput :
-	 * DataOutput等で書き出されたバイトデータを読み出すために使用する
+	 * JsonGeneratorに関する補足
+	 * UTF-8以外のエンコーディングを使用し、
+	 * 典型的なJsonGeneratorの使い方でJSONをwriteする例です。
+	 */
+	@Test
+	public void jsonGeneratorShouldWriteJSONIncrementally() throws Exception {
+
+		ByteArrayOutputStream outputBytes = new ByteArrayOutputStream();
+		Writer writer = new OutputStreamWriter(outputBytes, "Shift_JIS");
+		JsonGenerator jsonGenerator = mapper.getFactory().createGenerator(writer);
+		jsonGenerator.writeStartObject();
+		jsonGenerator.writeStringField("message", "あいうえお");
+		jsonGenerator.writeEndObject();
+		jsonGenerator.close();
+
+		assertThat(outputBytes.toByteArray(), equalTo("{\"message\":\"あいうえお\"}".getBytes("Shift_JIS")));
+	}
+
+	/*
+	 * DataInput / DataOutputの典型的な使用例 
+	 * ・DataOutput : プリミティブ型または文字列を直接バイトデータとして書き出すために使用する
+	 * ・DataInput :	 DataOutput等で書き出されたバイトデータを読み出すために使用する
 	 */
 	@Test
 	public void personShouldBeSerializedByDataOutputAndDeserializedByDataInput() throws Exception {
@@ -384,7 +386,6 @@ public class BinaryToJSONSampleTest {
 		DataOutput dout = new DataOutputStream(new FileOutputStream(file));
 		dout.writeInt(person.getAge());
 		// PersonNameはJSONで書き出す
-		// 生成されたバイナリを確認するとUTF-8で出力されている
 		mapper.writeValue(dout, person.getPersonName());
 		dout.writeChar(person.getKanaCode());
 
@@ -393,8 +394,7 @@ public class BinaryToJSONSampleTest {
 		Person2 deserializedPerson = new Person2();
 		deserializedPerson.setAge(din.readInt());
 		PersonName deserializedPersonName = mapper.readValue(din, PersonName.class);
-		// !!!動作確認した限りでは、「writeValue」では「modified UTF-8」で出力されません。
-		// そのため以下のように記述しても正しくDeserializeできませんでした
+		// 以下のように記述しても正しくDeserializeできませんでした
 		// PersonName deserializedPersonName = mapper.readValue(din.readUTF(),
 		// PersonName.class);
 		deserializedPerson.setPersonName(deserializedPersonName);
@@ -404,8 +404,9 @@ public class BinaryToJSONSampleTest {
 	}
 
 	/*
-	 * ObjectMapperで、DataInput / DataOutputを使用する場合の実験 「modified
-	 * UTF-8」で書き出されたJSONであっても、 ObjectMapper#readValue(DataInput, Class<T>) <T>: T
+	 * ObjectMapperで、DataInput / DataOutputを使用する場合の例 
+	 * 「writeUTF」で書き出されたJSONは
+	 *  ObjectMapper#readValue(DataInput, Class<T>) <T>: T
 	 * では正しくDeserializeできない !!! このテストは失敗します
 	 */
 	@Test
@@ -423,7 +424,7 @@ public class BinaryToJSONSampleTest {
 		DataInput din = new DataInputStream(new FileInputStream(file));
 		assertThat(55, equalTo(din.readInt()));
 		PersonName deserializedPersonName = mapper.readValue(din, PersonName.class);
-		// 以下のようにすると正しくDeserializeされる
+		// 以下のようにすると正しくDeserializeされました
 		// PersonName deserializedPersonName = mapper.readValue(din.readUTF(),
 		// PersonName.class);
 		assertThat(deserializedPersonName.getFirstname(), equalTo("𠮷太郎"));
