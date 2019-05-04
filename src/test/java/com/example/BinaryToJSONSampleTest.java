@@ -32,16 +32,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * 
  * このデモコードでは、以下ような状況をシミュレートしています。
  * 
- * 「read」の例（read = JSON to javaオブジェクトの変換。Deserializeとも呼ばれる) 例1: 「 InputStream
- * inputStream = request.getInputStream(); 」のJSONをjavaのオブジェクトに変換
- * (「request」はHttpServletRequest。リクエストボディは任意のエンコーディングでエンコードされている) 例2: 「 File
- * file = new File(....); 」のJSONをjavaのオブジェクトに変換
+ * 「read」の例（read = JSON to javaオブジェクトの変換。Deserializeとも呼ばれる) 
+ * 例1: 「 InputStream inputStream = request.getInputStream(); 」のJSONをjavaのオブジェクトに変換
+ * (「request」はHttpServletRequest。リクエストボディは任意のエンコーディングでエンコードされている) 
+ * 例2: 「 File file = new File(....); 」のJSONをjavaのオブジェクトに変換
  * (「file」のデータは任意のエンコーディングでエンコードされている)
  * 
- * 「write」の例（write = javaオブジェクト to JSONの変換。Serializeとも呼ばれる) 例1: 「 OutputStream
- * outputStream = response.getOutputStream(); 」にJSONを書き出す
- * (「response」はHttpServletResponse。任意のエンコーディングでレスポンスボディをエンコードする必要がある) 例2: 「 File
- * file = new File(....); 」にJSONを書き出す (「file」のデータは任意のエンコーディングでエンコードする必要がある)
+ * 「write」の例（write = javaオブジェクト to JSONの変換。Serializeとも呼ばれる) 
+ * 例1: 「 OutputStream outputStream = response.getOutputStream(); 」にJSONを書き出す
+ * (「response」はHttpServletResponse。任意のエンコーディングでレスポンスボディをエンコードする必要がある) 
+ * 例2: 「 File file = new File(....); 」にJSONを書き出す 
+ * (「file」のデータは任意のエンコーディングでエンコードする必要がある)
  * 
  */
 public class BinaryToJSONSampleTest {
