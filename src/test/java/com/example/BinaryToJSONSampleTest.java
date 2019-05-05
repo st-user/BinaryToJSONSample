@@ -18,8 +18,11 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -111,10 +114,11 @@ public class BinaryToJSONSampleTest {
 	 * (a) 上記の「 ObjectMapper#readValue(byte[], Class<T>)<T> : T 」以外の
 	 * 「(a)」パターンとして利用できるメソッド
 	 */
-	@Test
-	public void readMethodsFromAnyUTF8BinaryDataShouldDetectEncodingSuccessfully() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = { "UTF-32BE", "UTF-16BE", "UTF-32LE", "UTF-16LE", "UTF-8" })
+	public void readMethodsFromAnyUTF8BinaryDataShouldDetectEncodingSuccessfully(String encoding) throws Exception {
 
-		File file = new File("sample_UTF-8.json");
+		File file = new File("sample_" +  encoding + ".json");
 		// 第一引数 : URL
 		Bean beanFromURL = mapper.readValue(file.toURI().toURL(), Bean.class);
 		assertThat(beanFromURL.toString(), equalTo(readExpected));
@@ -132,13 +136,13 @@ public class BinaryToJSONSampleTest {
 		// 「createParser」に渡せる引数の種類は、「readValue」の第一引数と似ています
 		// 以下は、byte[]を渡す例です。
 		// 他にも、File, URL, InputStream, Readerを渡すメソッド等があります
-		JsonParser jsonParser = mapper.getFactory().createParser(json.getBytes("UTF-8"));
+		JsonParser jsonParser = mapper.getFactory().createParser(json.getBytes(encoding));
 		Bean beanFromJsonParser = mapper.readValue(jsonParser, Bean.class);
 		assertThat(beanFromJsonParser.toString(), equalTo(readExpected));
 
 		// 「readTree」の場合も、「readValue」と同じような引数を渡せます。
 		// 以下は、byte[]を渡す例です。
-		JsonNode jsonNode = mapper.readTree(json.getBytes("UTF-8"));
+		JsonNode jsonNode = mapper.readTree(json.getBytes(encoding));
 		assertThat(jsonNode.get("message").asText(), equalTo("あいうえお"));
 	}
 
@@ -236,15 +240,24 @@ public class BinaryToJSONSampleTest {
 	 * (c)補足 JsonGeneratorを使用する場合に関する補足
 	 * 「createGenerator」の引数に「JsonEncoding」を渡せる場合は、UTF-16, UTF-32も使用できます
 	 */
-	@Test
-	public void writeValueByJsonGeneratorCanAlsoSpecifyUTF16orUTF32Encoding() throws Exception {
+	@ParameterizedTest
+	@ValueSource(strings = { "UTF-32BE", "UTF-16BE", "UTF-32LE", "UTF-16LE" })
+	public void writeValueByJsonGeneratorCanAlsoSpecifyUTF16orUTF32Encoding(String encoding) throws Exception {
+
+		JsonEncoding jsonEncoding = toJsonEncoding(encoding);
 
 		ByteArrayOutputStream jsonGeneratorOutputBytes = new ByteArrayOutputStream();
-		JsonGenerator jsonGenerator = mapper.getFactory().createGenerator(jsonGeneratorOutputBytes,
-				JsonEncoding.UTF16_BE);
+		JsonGenerator jsonGenerator = mapper.getFactory().createGenerator(jsonGeneratorOutputBytes, jsonEncoding);
 		mapper.writeValue(jsonGenerator, bean);
 
-		assertThat(jsonGeneratorOutputBytes.toByteArray(), equalTo(writeExpected.getBytes("UTF-16BE")));
+		assertThat(jsonGeneratorOutputBytes.toByteArray(), equalTo(writeExpected.getBytes(encoding)));
+	}
+
+	private JsonEncoding toJsonEncoding(String encoding) {
+		return Arrays.stream(JsonEncoding.values())//
+				.filter(jsonEnc -> jsonEnc.getJavaName().equals(encoding))//
+				.findFirst()//
+				.get();
 	}
 
 	/*
